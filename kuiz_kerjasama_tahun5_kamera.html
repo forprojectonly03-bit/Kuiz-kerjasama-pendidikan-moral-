@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Misi Kerjasama - Kuiz Kamera</title>
+<style>
+:root{--navy:#19345b;--blue:#4da9e8;--yellow:#ffd45c;--pink:#ff8fa3;--green:#53c99a;--cream:#fff9e9}
+*{box-sizing:border-box}
+body{margin:0;font-family:"Trebuchet MS",Arial,sans-serif;color:var(--navy);background:linear-gradient(135deg,#bdeeff,#e8f8ff 48%,#d9f8df);min-height:100vh}
+header{padding:16px 20px;text-align:center;background:linear-gradient(90deg,#258ed0,#53c8d9);color:white;border-bottom:6px solid #fff;box-shadow:0 5px 0 #9bdcf0}
+h1{margin:0;font-size:clamp(25px,5vw,42px);text-shadow:2px 3px 0 #246ca5;letter-spacing:1px}
+.subtitle{margin:6px 0 0;font-weight:bold}
+.wrap{max-width:1100px;margin:18px auto;padding:0 14px}
+.topbar{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px}
+.pill{background:white;border:3px solid #fff;border-radius:18px;padding:10px;text-align:center;box-shadow:0 4px 0 #9bcce0;font-weight:bold}
+.pill span{display:block;font-size:22px;color:#1686c3}
+.progress{height:14px;background:#fff;border-radius:20px;overflow:hidden;margin:12px 0;border:2px solid white}
+#bar{height:100%;width:0;background:linear-gradient(90deg,#52c99a,#b7e95b);transition:width .3s}
+.grid{display:grid;grid-template-columns:1.15fr .85fr;gap:15px;align-items:start}
+.card{background:rgba(255,255,255,.96);border:4px solid white;border-radius:24px;padding:20px;box-shadow:0 7px 0 #9bcce0}
+.scene{font-size:56px;text-align:center;margin:0 0 8px}
+.kicker{font-size:13px;font-weight:bold;color:#278ac2;text-transform:uppercase;letter-spacing:1px}
+#question{font-size:clamp(20px,3vw,28px);line-height:1.25;margin:8px 0 18px}
+.answers{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.answer{border:3px solid #d9eaf5;border-radius:17px;background:#f4fbff;padding:13px;text-align:left;font-size:16px;font-weight:bold;color:var(--navy);min-height:72px;cursor:pointer;transition:.15s}
+.answer b{display:inline-grid;place-items:center;background:var(--blue);color:white;border-radius:50%;width:30px;height:30px;margin-right:7px}
+.answer:hover{transform:translateY(-2px);border-color:#56b7e8}
+.answer:disabled{cursor:default;opacity:.85}
+#feedback{margin-top:14px;padding:12px;border-radius:15px;background:#fff5d7;display:none;font-weight:bold}
+.cameraCard h2{margin:0 0 8px;font-size:22px}
+#video{width:100%;aspect-ratio:4/3;object-fit:cover;background:#18304b;border-radius:17px;transform:scaleX(-1)}
+.cameraStatus{margin:10px 0;padding:11px;border-radius:14px;background:#e9f8ff;text-align:center;font-weight:bold}
+.bigNumber{font-size:38px;color:#1686c3}
+button.action{border:0;border-radius:14px;padding:12px 16px;background:#ffca4e;color:#583c00;font-weight:bold;font-size:15px;cursor:pointer;box-shadow:0 4px 0 #d89c25;margin:4px}
+button.action.secondary{background:#dff4ff;color:#14547b;box-shadow:0 4px 0 #9bcce0}
+.hint{font-size:13px;line-height:1.45;color:#49627e}
+.controls{text-align:center;margin-top:10px}
+#startScreen,#endScreen{position:fixed;inset:0;background:rgba(20,48,78,.72);display:flex;align-items:center;justify-content:center;padding:18px;z-index:5}
+.modal{max-width:570px;width:100%;background:#fffdf4;border:6px solid white;border-radius:28px;padding:26px;text-align:center;box-shadow:0 10px 0 #8abbd3}
+.modal .mascot{font-size:66px}
+.modal h2{font-size:30px;margin:8px}
+.modal p{line-height:1.55}
+#endScreen{display:none}
+.small{font-size:12px;color:#647b92}
+@media(max-width:760px){.grid{grid-template-columns:1fr}.topbar{gap:6px}.pill{font-size:13px;padding:8px 4px}.pill span{font-size:18px}.card{padding:15px}.answers{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<header><h1>🌟 MISI KERJASAMA 🌟</h1><div class="subtitle">Kuiz Interaktif Pendidikan Moral Tahun 5 • Unit 12</div></header>
+<div class="wrap">
+  <div class="topbar">
+    <div class="pill">SOALAN<span id="qCount">0 / 15</span></div>
+    <div class="pill">MATA BINTANG<span id="score">0 ⭐</span></div>
+    <div class="pill">JAWAPAN KAMERA<span id="gestureTop">—</span></div>
+  </div>
+  <div class="progress"><div id="bar"></div></div>
+  <div class="grid">
+    <section class="card">
+      <div class="scene">🏫🤝🌳</div>
+      <div class="kicker" id="category">Misi 1 • Amalan Kerjasama</div>
+      <h2 id="question">Tekan mula untuk memulakan misi!</h2>
+      <div class="answers" id="answers"></div>
+      <div id="feedback"></div>
+      <div class="controls">
+        <button class="action secondary" id="nextBtn" style="display:none">Soalan seterusnya ➜</button>
+      </div>
+    </section>
+    <aside class="card cameraCard">
+      <h2>📷 Kamera Jari</h2>
+      <video id="video" autoplay playsinline muted></video>
+      <div class="cameraStatus">Tunjukkan jari: <span class="bigNumber" id="fingerCount">—</span><br><span id="cameraText">Kamera belum dihidupkan</span></div>
+      <div class="hint">
+        <b>Panduan jawapan:</b><br>
+        ☝️ 1 jari = A &nbsp; ✌️ 2 jari = B<br>
+        🤟 3 jari = C &nbsp; 🖐️ 4 jari = D<br><br>
+        Pastikan tapak tangan menghadap kamera dan tunjukkan jari telunjuk hingga kelingking. Ibu jari tidak dikira. Kekalkan isyarat seketika untuk memilih jawapan.
+      </div>
+      <div class="controls">
+        <button class="action" id="cameraBtn">Hidupkan kamera</button>
+        <button class="action secondary" id="stopBtn">Matikan kamera</button>
+      </div>
+      <p class="small">Kamera memerlukan kebenaran pengguna dan biasanya berfungsi melalui HTTPS atau localhost. Jika kamera tidak tersedia, murid boleh memilih A–D pada skrin.</p>
+    </aside>
+  </div>
+</div>
+<div id="startScreen"><div class="modal">
+  <div class="mascot">🦸‍♀️🦸‍♂️🤝</div>
+  <h2>Selamat datang ke Misi Kerjasama!</h2>
+  <p>Bantu pasukan sekolah menyelesaikan 15 cabaran tentang amalan kerjasama, kesan mengabaikannya dan perasaan apabila bekerjasama.</p>
+  <p><b>Cara bermain:</b> Tunjukkan 1 hingga 4 jari di hadapan kamera untuk memilih A, B, C atau D. Kamu juga boleh menekan pilihan pada skrin.</p>
+  <button class="action" id="startBtn">MULA BERMAIN 🚀</button>
+</div></div>
+<div id="endScreen"><div class="modal">
+  <div class="mascot">🏆🎉🤝</div><h2>Misi selesai!</h2>
+  <p id="finalScore"></p><p id="finalMessage"></p>
+  <button class="action" id="restartBtn">Main semula 🔄</button>
+</div></div>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
+<script>
+const questions = [
+{c:"Amalan Kerjasama",q:"Apakah maksud amalan kerjasama dalam masyarakat?",o:["Melakukan sesuatu bersama-sama untuk kebaikan","Mementingkan diri sendiri","Membiarkan orang lain bekerja","Bersaing untuk kepentingan sendiri"],a:0,e:"Kerjasama bermaksud melakukan sesuatu bersama-sama dan saling membantu untuk mencapai tujuan bersama."},
+{c:"Amalan Kerjasama",q:"Antara berikut, yang manakah contoh kerjasama dalam hidup bermasyarakat?",o:["Tidak menghiraukan jiran","Menyertai gotong-royong membersihkan taman","Membuang sampah di halaman jiran","Enggan membantu semasa kecemasan"],a:1,e:"Gotong-royong ialah contoh amalan kerjasama dalam masyarakat."},
+{c:"Amalan Kerjasama",q:"Penduduk bekerjasama mengadakan sambutan perayaan di kawasan perumahan. Apakah amalan yang ditunjukkan?",o:["Keberanian","Kesederhanaan","Kerjasama","Berdikari"],a:2,e:"Penduduk saling membantu menjayakan sambutan perayaan."},
+{c:"Kesan Pengabaian",q:"Apakah kesan jika penduduk tidak bekerjasama membersihkan kawasan taman?",o:["Taman semakin ceria","Kawasan menjadi kotor dan tidak terurus","Hubungan semakin erat","Kerja menjadi lebih mudah"],a:1,e:"Tanpa kerjasama, kawasan bersama mungkin kotor dan tidak terurus."},
+{c:"Kesan Pengabaian",q:"Jika masyarakat tidak mahu membantu jiran yang ditimpa kesusahan, apakah kesannya?",o:["Jiran berasa lebih dihargai","Masalah selesai dengan cepat","Hubungan masyarakat boleh menjadi renggang","Semua penduduk semakin rapat"],a:2,e:"Sikap tidak peduli boleh merenggangkan hubungan kejiranan."},
+{c:"Kesan Pengabaian",q:"Apakah yang mungkin berlaku jika penduduk tidak bekerjasama menjaga kemudahan awam?",o:["Kemudahan rosak dan tidak terjaga","Kemudahan bertambah baik sendiri","Semua orang berasa gembira","Kawasan menjadi lebih selamat secara automatik"],a:0,e:"Kemudahan awam memerlukan tanggungjawab bersama supaya sentiasa terpelihara."},
+{c:"Kesan Pengabaian",q:"Mengapakah kerja membersihkan dewan menjadi sukar apabila tiada kerjasama?",o:["Kerana semua orang membantu","Kerana hanya beberapa orang melakukan kerja","Kerana kerja sudah selesai","Kerana dewan tidak perlu dibersihkan"],a:1,e:"Apabila hanya sedikit orang membantu, beban kerja menjadi lebih berat."},
+{c:"Tindakan Kerjasama",q:"Kamu melihat jiran mengangkat barang yang berat. Apakah tindakan yang sesuai?",o:["Melihat sahaja","Mengejek jiran","Menawarkan bantuan mengikut kemampuan","Terus meninggalkan tempat itu"],a:2,e:"Menawarkan bantuan ialah tindakan prihatin dan bekerjasama."},
+{c:"Tindakan Kerjasama",q:"Semasa gotong-royong, rakan kamu belum mendapat tugas. Apakah yang patut kamu lakukan?",o:["Mengajaknya menyertai tugas bersama","Menyuruhnya pulang","Mengambil semua tugas untuk diri sendiri","Mengabaikannya"],a:0,e:"Mengajak rakan menyertai aktiviti memastikan semua orang dapat bekerjasama."},
+{c:"Tindakan Kerjasama",q:"Penduduk berbeza pendapat semasa merancang aktiviti komuniti. Apakah tindakan terbaik?",o:["Bertengkar sehingga ada yang mengalah","Mendengar pandangan dan berbincang bersama","Membatalkan semua aktiviti","Membiarkan seorang membuat semua keputusan"],a:1,e:"Perbincangan dan sikap menghormati pandangan membantu mencapai persetujuan."},
+{c:"Perasaan",q:"Apakah perasaan kamu apabila penduduk bekerjasama membantu keluarga yang memerlukan?",o:["Marah","Kecewa","Gembira dan bangga","Tidak peduli"],a:2,e:"Kita boleh berasa gembira dan bangga apabila masyarakat saling membantu."},
+{c:"Perasaan",q:"Kamu melihat jiran tidak dipedulikan ketika memerlukan bantuan. Apakah perasaan yang sesuai?",o:["Sedih dan simpati","Bangga","Seronok","Tidak sabar"],a:0,e:"Kita berasa sedih dan simpati apabila seseorang tidak mendapat bantuan."},
+{c:"Perasaan",q:"Selepas aktiviti gotong-royong berjaya, apakah perasaan yang mungkin dialami penduduk?",o:["Kecewa kerana bekerjasama","Puas hati dan bersyukur","Marah kepada semua orang","Takut untuk berjumpa jiran"],a:1,e:"Hasil usaha bersama boleh menimbulkan rasa puas hati dan bersyukur."},
+{c:"Kepentingan",q:"Apakah kepentingan amalan kerjasama dalam hidup bermasyarakat?",o:["Mewujudkan pergaduhan","Menyusahkan semua penduduk","Mengeratkan hubungan dan mewujudkan keharmonian","Menggalakkan sikap mementingkan diri"],a:2,e:"Kerjasama mengeratkan hubungan dan membantu mewujudkan masyarakat harmoni."},
+{c:"Aplikasi",q:"Kelas kamu ingin mengadakan jamuan. Apakah tindakan yang menunjukkan kerjasama?",o:["Membiarkan seorang murid membuat semuanya","Setiap murid membantu mengikut tugas yang dipersetujui","Berebut memilih tugas paling mudah","Tidak hadir tanpa sebab"],a:1,e:"Pembahagian tugas dan saling membantu menunjukkan kerjasama."}
+];
+let index=0,score=0,answered=false,stream=null,mpCamera=null,lastGesture=0,stableCount=0,stableValue=0,gestureEnabled=false;
+const $=id=>document.getElementById(id);
+function render(){
+ const q=questions[index]; answered=false;
+ $("qCount").textContent=(index+1)+" / 15"; $("score").textContent=score+" ⭐";
+ $("bar").style.width=(index/15*100)+"%"; $("category").textContent="Misi "+(index+1)+" • "+q.c;
+ $("question").textContent=q.q; $("feedback").style.display="none"; $("nextBtn").style.display="none";
+ $("answers").innerHTML="";
+ q.o.forEach((v,i)=>{let b=document.createElement("button");b.className="answer";b.innerHTML="<b>"+String.fromCharCode(65+i)+"</b>"+v;b.onclick=()=>choose(i);$("answers").appendChild(b)});
+}
+function choose(n){
+ if(answered)return; answered=true;
+ const q=questions[index],correct=n===q.a;
+ if(correct)score++;
+ [...$("answers").children].forEach((b,i)=>{b.disabled=true;if(i===q.a)b.style.borderColor="#53c99a";if(i===n&&!correct)b.style.borderColor="#ff8fa3"});
+ $("score").textContent=score+" ⭐";
+ $("feedback").style.display="block";
+ $("feedback").style.background=correct?"#e1faed":"#fff0f1";
+ $("feedback").innerHTML=(correct?"✅ Betul! Hebat! ":"💡 Belum tepat. Jawapan yang betul ialah "+String.fromCharCode(65+q.a)+". ")+q.e;
+ $("nextBtn").style.display="inline-block";
+}
+$("nextBtn").onclick=()=>{
+ index++;
+ if(index>=questions.length){$("bar").style.width="100%";$("endScreen").style.display="flex";$("finalScore").textContent="Markah kamu: "+score+" daripada 15."; $("finalMessage").textContent=score>=12?"Hebat! Kamu memang juara kerjasama!":score>=8?"Bagus! Terus amalkan sikap bekerjasama.":"Teruskan belajar. Kerjasama menjadikan kita lebih kuat!";}
+ else render();
+};
+$("startBtn").onclick=()=>{$("startScreen").style.display="none";render()};
+$("restartBtn").onclick=()=>{index=0;score=0;$("endScreen").style.display="none";render()};
+async function startCamera(){
+ if(!navigator.mediaDevices?.getUserMedia){$("cameraText").textContent="Pelayar tidak menyokong kamera.";return}
+ if(!window.Hands||!window.Camera){$("cameraText").textContent="Modul pengecaman tidak dapat dimuatkan. Semak internet.";return}
+ try{
+  stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:"user",width:640,height:480},audio:false});
+  $("video").srcObject=stream;
+  const hands=new Hands({locateFile:(file)=>`https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`});
+  hands.setOptions({maxNumHands:1,modelComplexity:1,minDetectionConfidence:.65,minTrackingConfidence:.6});
+  hands.onResults(results=>{
+   if(!results.multiHandLandmarks||!results.multiHandLandmarks.length){$("fingerCount").textContent="—";$("gestureTop").textContent="—";stableCount=0;return}
+   const lm=results.multiHandLandmarks[0];
+   // Four fingers: index, middle, ring, little. Thumb is intentionally ignored.
+   const tips=[8,12,16,20],pips=[6,10,14,18];
+   let count=0;for(let i=0;i<4;i++){if(lm[tips[i]].y < lm[pips[i]].y-.025)count++}
+   $("fingerCount").textContent=count||"—";$("gestureTop").textContent=count?count+" jari":"—";
+   const now=Date.now();
+   if(count>=1&&count<=4){
+    if(count===stableValue)stableCount++;else{stableValue=count;stableCount=1}
+    $("cameraText").textContent="Kekalkan "+count+" jari...";
+    if(stableCount>=12&&now-lastGesture>2200&&!answered){lastGesture=now;choose(count-1);stableCount=0;$("cameraText").textContent="Jawapan direkodkan!";}
+   }else{stableCount=0;$("cameraText").textContent="Tunjukkan 1 hingga 4 jari."}
+  });
+  mpCamera=new Camera($("video"),{onFrame:async()=>{await hands.send({image:$("video")})},width:640,height:480});
+  mpCamera.start();gestureEnabled=true;$("cameraText").textContent="Kamera aktif. Tunjukkan 1–4 jari.";
+ }catch(err){$("cameraText").textContent="Kamera tidak dapat diakses. Benarkan akses kamera pada pelayar."}
+}
+function stopCamera(){
+ if(mpCamera){mpCamera.stop();mpCamera=null}
+ if(stream){stream.getTracks().forEach(t=>t.stop());stream=null}
+ $("video").srcObject=null;$("cameraText").textContent="Kamera dimatikan";$("fingerCount").textContent="—";$("gestureTop").textContent="—";
+}
+$("cameraBtn").onclick=startCamera;$("stopBtn").onclick=stopCamera;
+window.addEventListener("beforeunload",stopCamera);
+</script>
+</body>
+</html>
